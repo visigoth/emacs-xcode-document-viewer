@@ -70,7 +70,7 @@
 
 (defun xcdoc:docsetutil-command ()
   (or (executable-find "docsetutil")
-      (and (file-executable-p "/Applications/Xcode.app/Contents/Developer/usr/bin/docsetutil") "/Application/Xcode.app/Contents/Developer/usr/bin/docsetutil")
+      (and (file-executable-p "/Applications/Xcode.app/Contents/Developer/usr/bin/docsetutil") "/Applications/Xcode.app/Contents/Developer/usr/bin/docsetutil")
       (error "docsetutil command is not found. Perhaps you dont have Xcode man.")))
 
 (defun* xcdoc:search-command (query docset)
