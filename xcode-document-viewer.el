@@ -44,11 +44,10 @@
 
 (require 'w3m-load)
 (require 'thingatpt)
-(require 'anything)
+(require 'helm)
+(require 'helm-help)
 
-(defcustom xcdoc:document-path nil
-  "please set docset full path like:
-\"/Developer/Platforms/iPhoneOS.platform/Developer/Documentation/DocSets/com.apple.adc.documentation.AppleiPhone3_1.iPhoneLibrary.docset\"")
+(defcustom xcdoc:document-path nil "")
 
 (defcustom xcdoc:open-w3m-other-buffer nil
   "")
@@ -71,7 +70,7 @@
 
 (defun xcdoc:docsetutil-command ()
   (or (executable-find "docsetutil")
-      (and (file-executable-p "/Developer/usr/bin/docsetutil") "/Developer/usr/bin/docsetutil")
+      (and (file-executable-p "/Applications/Xcode.app/Contents/Developer/usr/bin/docsetutil") "/Application/Xcode.app/Contents/Developer/usr/bin/docsetutil")
       (error "docsetutil command is not found. Perhaps you dont have Xcode man.")))
 
 (defun* xcdoc:search-command (query docset)
@@ -80,9 +79,7 @@
           (shell-quote-argument query)
           docset))
 
-(defun* xcdoc:excecute-search (&key query docset (call-shell-command-fn 'shell-command-to-string))
-  "call shell command like:
-\"/Developer/usr/bin/docsetutil search -query  'View'  /Developer/Platforms/iPhoneOS.platform/Developer/Documentation/DocSets/com.apple.adc.documentation.AppleiPhone3_1.iPhoneLibrary.docset\""
+(defun* xcdoc:excecute-search (&key query docset (call-shell-command-fn 'shell-command-to-string)) ""
   (funcall call-shell-command-fn
            (xcdoc:search-command query docset)))
 
@@ -136,7 +133,7 @@
     (candidates . (lambda ()
                     (xcdoc:build-candidates-from-command-res
                      (xcdoc:excecute-search
-                      :query anything-pattern
+                      :query helm-pattern
                       :docset (xcdoc:document-path)))))
     (volatile)
     (delayed)
@@ -145,7 +142,7 @@
                ("w3m new-session" . (lambda (c) (xcdoc:open-w3m c t)))))))
 
 (defun* xcdoc:search-at-point-source-candidates
-    (&optional (query (with-current-buffer anything-current-buffer
+    (&optional (query (with-current-buffer helm-current-buffer
                         (or (thing-at-point 'symbol) ""))))
   (xcdoc:build-candidates-from-command-res
    (xcdoc:excecute-search
@@ -160,18 +157,20 @@
 
 (defun xcdoc:search ()
   (interactive)
-  (anything (list (xcdoc:search-source))))
+  (helm (list (xcdoc:search-source))))
 
 (defun xcdoc:ask-search ()
   (interactive)
   (lexical-let* ((query (read-string "Query: " (or (thing-at-point 'symbol) ""))))
-    (let ((anything-quit-if-no-candidate (lambda () (message "no document for %s" query))))
-    (anything (list (xcdoc:search-at-point-source query))))))
+    (let ((helm-quit-if-no-candidate (lambda () (message "no document for %s" query))))
+    (helm (list (xcdoc:search-at-point-source query))))))
 
 (defun xcdoc:search-at-point ()
   (interactive)
-  (let ((anything-quit-if-no-candidate (lambda () (message "no document for %s" (or (thing-at-point 'symbol) "")))))
-    (anything (list (xcdoc:search-at-point-source)))))
+  (let ((thing (thing-at-point 'symbol))
+        (helm-quit-if-no-candidate (lambda () (message "no document for %s" thing))))
+    (message thing)
+    (helm (list (xcdoc:search-at-point-source thing)))))
 
 (provide 'xcode-document-viewer)
 ;; xcode-document-viewer.el ends here.
